@@ -1,7 +1,6 @@
 import os
 from queue import Queue
-from threading import Thread, Event
-import time
+from threading import Thread
 
 
 class ThreadPool:
@@ -17,10 +16,12 @@ class ThreadPool:
         self.task_queue = Queue()
         self.workers = []
         self.num_threads = 0
+
         if os.environ.get("TP_NUM_OF_THREADS"):
             self.num_threads = int(os.environ.get("TP_NUM_OF_THREADS"))
         else:
             self.num_threads = os.cpu_count()
+
         self.create_task_runners()
 
     def create_task_runners(self):
@@ -44,15 +45,15 @@ class TaskRunner(Thread):
         # TODO: init necessary data structures
         super().__init__()
         self.graceful_shutdown = False
-        self.task_queue = Queue()
+        self.task_queue = task_queue
 
     def run(self):
         while True:
             # TODO
             # Get pending job
-            pending_job = self.task_queue.get()
+            (pending_job, job_id, question, state) = self.task_queue.get()
             # Execute the job and save the result to disk
-            pending_job()
+            pending_job(question)
             # Repeat until graceful_shutdown
             if self.graceful_shutdown:
                 break

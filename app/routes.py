@@ -1,8 +1,10 @@
 from app import webserver
 from flask import request, jsonify
+from threading import Lock
+import app.utils as utils
+import app.jobs as jobs
 
-import os
-import json
+jobs_lock = Lock()
 
 # Example endpoint definition
 @webserver.route('/api/post_endpoint', methods=['POST'])
@@ -42,14 +44,24 @@ def get_response(job_id):
 def states_mean_request():
     # Get request data
     data = request.json
-    print(f"Got request {data}")
 
     # TODO
     # Register job. Don't wait for task to finish
     # Increment job_id counter
     # Return associated job_id
+    if request.method == 'POST':
+        # Wait for the data to be loaded
+        utils.initialized_csv_and_threadpool.wait()
+        webserver.logger.info("Received request to compute mean for states")
 
-    return jsonify({"status": "NotImplemented"})
+        # Safely increment job counter
+        with jobs_lock:
+            job_id = utils.job_counter
+            # Submit the task to the thread pool
+            response = webserver.tasks_runner.submit_task((jobs.compute_states_mean, job_id, data['question'], None))
+            utils.job_counter += 1
+
+    return jsonify({"response": job_id})
 
 @webserver.route('/api/state_mean', methods=['POST'])
 def state_mean_request():

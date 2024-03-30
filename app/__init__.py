@@ -3,6 +3,7 @@ from app.data_ingestor import DataIngestor
 from app.task_runner import ThreadPool
 import logging
 from datetime import datetime
+import app.utils as utils
 
 webserver = Flask(__name__)
 
@@ -11,15 +12,15 @@ webserver.logger.setLevel(logging.INFO)
 handler = logging.FileHandler("webserver.log")
 webserver.logger.addHandler(handler)
 
-webserver.tasks_runner = ThreadPool()
-webserver.logger.info(f"[{datetime.now()}] ThreadPool initialized")
-
-# webserver.task_runner.start()
-
 webserver.data_ingestor = DataIngestor("./nutrition_activity_obesity_usa_subset.csv")
 webserver.logger.info(f"[{datetime.now()}] Loaded data from CSV file")
 
-webserver.job_counter = 1
+webserver.tasks_runner = ThreadPool()
+webserver.logger.info(f"[{datetime.now()}] ThreadPool initialized")
+
+#webserver.task_runner.start()
+
+utils.initialized_csv_and_threadpool.set()
 
 
 from app import routes

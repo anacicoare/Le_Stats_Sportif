@@ -1,8 +1,10 @@
 import os
 import json
 import pandas as pd
+
+import app
 from app.constants import CSVColumnNames
-from app.events import finished_loading_csv
+import app.utils as events
 
 class Entry:
     def __init__(self, row):
@@ -54,9 +56,7 @@ class DataIngestor:
                 entry = Entry(row)
                 self.data_entries.append(entry)
 
-        # Signal that the csv has been loaded
-        finished_loading_csv.set()
-
+        events.finished_loading_csv = True
 
         self.questions_best_is_min = [
             'Percent of adults aged 18 years and older who have an overweight classification',
