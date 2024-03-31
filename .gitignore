@@ -23,3 +23,7 @@ share/python-wheels/
 MANIFEST
 .idea/*
 /.idea
+ran_tests.txt
+webserver.log
+/.idea
+.idea/vcs.xml

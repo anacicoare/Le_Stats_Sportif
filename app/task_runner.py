@@ -1,6 +1,7 @@
 import os
 from queue import Queue
 from threading import Thread
+from app.utils import all_jobs_status, all_jobs_results
 
 
 class ThreadPool:
@@ -53,7 +54,13 @@ class TaskRunner(Thread):
             # Get pending job
             (pending_job, job_id, question, state) = self.task_queue.get()
             # Execute the job and save the result to disk
-            pending_job(question)
+            all_jobs_status.append({f'job_id_{job_id}': 'running'})
+            job_result = pending_job(question)
+            all_jobs_results[f'job_id_{job_id}'] = job_result
+            for job in all_jobs_status:
+                if job.get(f'job_id_{job_id}') == 'running':
+                    job[f'job_id_{job_id}'] = 'done'
+
             # Repeat until graceful_shutdown
             if self.graceful_shutdown:
                 break

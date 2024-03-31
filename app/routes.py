@@ -3,6 +3,7 @@ from flask import request, jsonify
 from threading import Lock
 import app.utils as utils
 import app.jobs as jobs
+from datetime import datetime
 
 jobs_lock = Lock()
 
@@ -26,19 +27,27 @@ def post_endpoint():
 
 @webserver.route('/api/get_results/<job_id>', methods=['GET'])
 def get_response(job_id):
-    print(f"JobID is {job_id}")
-    # TODO
-    # Check if job_id is valid
+    if request.method == 'GET':
+        # TODO
+        # Check if job_id is valid
+        job_id = int(job_id.split('_')[-1])
+        if not 0 < int(job_id) < utils.job_counter:
+            webserver.logger.error(f"[{datetime.now}] Job ID {job_id} not found")
+            return jsonify({
+                "status": "error",
+                "reason": "Invalid job_id"
+            })
 
-    # Check if job_id is done and return the result
-    #    res = res_for(job_id)
-    #    return jsonify({
-    #        'status': 'done',
-    #        'data': res
-    #    })
-
-    # If not, return running status
-    return jsonify({'status': 'NotImplemented'})
+        # Check if job_id is done and return the result
+        if utils.all_jobs_results.get(f'job_id_{job_id}'):
+            return jsonify({
+                "status": "done",
+                "data": utils.all_jobs_results[f'job_id_{job_id}']
+            })
+        else:
+            return jsonify({
+                "status": "running",
+            })
 
 @webserver.route('/api/states_mean', methods=['POST'])
 def states_mean_request():
@@ -52,7 +61,6 @@ def states_mean_request():
     if request.method == 'POST':
         # Wait for the data to be loaded
         utils.initialized_csv_and_threadpool.wait()
-        webserver.logger.info("Received request to compute mean for states")
 
         # Safely increment job counter
         with jobs_lock:
@@ -61,7 +69,7 @@ def states_mean_request():
             response = webserver.tasks_runner.submit_task((jobs.compute_states_mean, job_id, data['question'], None))
             utils.job_counter += 1
 
-    return jsonify({"response": job_id})
+    return jsonify({"job_id": "job_id_" + str(job_id)})
 
 @webserver.route('/api/state_mean', methods=['POST'])
 def state_mean_request():
@@ -143,6 +151,16 @@ def state_mean_by_category_request():
     # Return associated job_id
 
     return jsonify({"status": "NotImplemented"})
+
+
+@webserver.route('/api/jobs', methods=['GET'])
+def api_jobs():
+    if request.method == 'GET':
+        # Return all jobs
+        return jsonify({
+            "status": "done",
+            "data": utils.all_jobs_status
+        })
 
 # You can check localhost in your browser to see what this displays
 @webserver.route('/')
