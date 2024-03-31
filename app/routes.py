@@ -92,13 +92,21 @@ def state_mean_request():
 
 @webserver.route('/api/best5', methods=['POST'])
 def best5_request():
-    # TODO
-    # Get request data
-    # Register job. Don't wait for task to finish
-    # Increment job_id counter
-    # Return associated job_id
+    if request.method == 'POST':
+        # Wait for the data to be loaded
+        utils.initialized_csv_and_threadpool.wait()
 
-    return jsonify({"status": "NotImplemented"})
+        # Get request data
+        data = request.json
+
+        # Safely increment job counter
+        with jobs_lock:
+            job_id = utils.job_counter
+            # Submit the task to the thread pool
+            response = webserver.tasks_runner.submit_task((jobs.compute_best5, job_id, data['question'], None))
+            utils.job_counter += 1
+
+        return jsonify({"job_id": "job_id_" + str(job_id)})
 
 @webserver.route('/api/worst5', methods=['POST'])
 def worst5_request():
