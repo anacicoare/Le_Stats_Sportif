@@ -43,5 +43,5 @@ def compute_best5(question):
 
 
 def compute_worst5(question):
-    all_means = dict(reversed(compute_states_mean(question).items()))
+    all_means = compute_states_mean(question)
     return {k: all_means[k] for k in list(all_means)[-5:]}
