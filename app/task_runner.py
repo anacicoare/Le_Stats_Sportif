@@ -55,7 +55,10 @@ class TaskRunner(Thread):
             (pending_job, job_id, question, state) = self.task_queue.get()
             # Execute the job and save the result to disk
             all_jobs_status.append({f'job_id_{job_id}': 'running'})
-            job_result = pending_job(question)
+            if not state:
+                job_result = pending_job(question)
+            else:
+                job_result = pending_job(state, question)
             all_jobs_results[f'job_id_{job_id}'] = job_result
             for job in all_jobs_status:
                 if job.get(f'job_id_{job_id}') == 'running':
