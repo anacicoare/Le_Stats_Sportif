@@ -129,13 +129,21 @@ def worst5_request():
 
 @webserver.route('/api/global_mean', methods=['POST'])
 def global_mean_request():
-    # TODO
-    # Get request data
-    # Register job. Don't wait for task to finish
-    # Increment job_id counter
-    # Return associated job_id
+   if request.method == 'POST':
+        # Wait for the data to be loaded
+        utils.initialized_csv_and_threadpool.wait()
 
-    return jsonify({"status": "NotImplemented"})
+        # Get request data
+        data = request.json
+
+        # Safely increment job counter
+        with jobs_lock:
+            job_id = utils.job_counter
+            # Submit the task to the thread pool
+            response = webserver.tasks_runner.submit_task((jobs.compute_global_mean, job_id, data['question'], None))
+            utils.job_counter += 1
+
+        return jsonify({"job_id": "job_id_" + str(job_id)})
 
 @webserver.route('/api/diff_from_mean', methods=['POST'])
 def diff_from_mean_request():
