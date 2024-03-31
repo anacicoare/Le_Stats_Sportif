@@ -62,3 +62,14 @@ def compute_global_mean(question):
             all_len += len(data_value_list)
 
     return {"global_mean": all_sum / all_len}
+
+
+def compute_diff_from_mean(question):
+    result = {}
+    global_mean = compute_global_mean(question)["global_mean"]
+    all_states_mean = compute_states_mean(question)
+
+    for state, mean in all_states_mean.items():
+        result[state] = global_mean - mean
+
+    return result

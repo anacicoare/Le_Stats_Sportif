@@ -118,7 +118,7 @@ class TestAPI(unittest.TestCase):
                         ref_result = ref_result,
                         timeout_sec = 1)
                 except Exception as e:
-                    print(f"Failed for {input_file} with error {e}")
+                    print(f"[{endpoint}] Failed for {input_file} with error {e}")
                 
                 local_score += test_score
         total_score += min(round(local_score), test_suite_score)
