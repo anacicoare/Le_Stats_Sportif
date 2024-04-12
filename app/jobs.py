@@ -73,3 +73,14 @@ def compute_diff_from_mean(question):
         result[state] = global_mean - mean
 
     return result
+
+
+def compute_state_diff_from_mean(state, question):
+    result = {}
+    global_mean = compute_global_mean(question)["global_mean"]
+    state_mean = compute_state_mean(state, question)
+
+    for state, mean in state_mean.items():
+        result[state] = global_mean - mean
+
+    return result
